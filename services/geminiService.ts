@@ -44,6 +44,8 @@ export const generateHoroscope = async (user: UserProfile): Promise<HoroscopeRes
     ${styleInstructionMap[user.style]}
     ${focusInstruction}
 
+    Также оцени благоприятность этого периода в процентах (0-100) для четырех сфер: Любовь, Карьера, Здоровье, Общая удача.
+
     Ответ должен быть строго в формате JSON.
   `;
 
@@ -65,8 +67,18 @@ export const generateHoroscope = async (user: UserProfile): Promise<HoroscopeRes
             luckyNumber: { type: Type.STRING, description: "Число удачи" },
             mood: { type: Type.STRING, description: "Эмоциональный фон (одним словом)" },
             advice: { type: Type.STRING, description: "Короткий совет" },
+            scores: {
+              type: Type.OBJECT,
+              properties: {
+                love: { type: Type.INTEGER, description: "Оценка сферы Любви (0-100)" },
+                career: { type: Type.INTEGER, description: "Оценка сферы Карьеры (0-100)" },
+                health: { type: Type.INTEGER, description: "Оценка сферы Здоровья (0-100)" },
+                general: { type: Type.INTEGER, description: "Оценка Общей удачи (0-100)" }
+              },
+              required: ["love", "career", "health", "general"]
+            }
           },
-          required: ["date", "general", "love", "career", "health", "luckyColor", "luckyNumber", "mood", "advice"],
+          required: ["date", "general", "love", "career", "health", "luckyColor", "luckyNumber", "mood", "advice", "scores"],
         },
       },
     });

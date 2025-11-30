@@ -31,6 +31,13 @@ export interface UserProfile {
   style: HoroscopeStyle;
 }
 
+export interface HoroscopeScores {
+  love: number;
+  career: number;
+  health: number;
+  general: number;
+}
+
 export interface HoroscopeResponse {
   date: string;
   general: string;
@@ -41,6 +48,7 @@ export interface HoroscopeResponse {
   luckyNumber: string;
   mood: string;
   advice: string;
+  scores: HoroscopeScores;
 }
 
 export interface HistoryItem extends HoroscopeResponse {

@@ -3,6 +3,7 @@ import { generateHoroscope } from './services/geminiService';
 import { UserProfile, ZodiacSign, Gender, HoroscopeResponse, HoroscopePeriod, HoroscopeStyle, HistoryItem } from './types';
 import { ZodiacIcon } from './components/ZodiacIcon';
 import { Starfield } from './components/Starfield';
+import { HoroscopeChart } from './components/HoroscopeChart';
 
 // --- Icons ---
 
@@ -15,6 +16,12 @@ const HistoryIcon = ({ className }: { className?: string }) => (
 const BackIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+  </svg>
+);
+
+const CloseIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
@@ -63,6 +70,57 @@ const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">{title}</label>
 );
 
+interface Definition {
+  title: string;
+  text: string;
+}
+
+const Modal: React.FC<{ 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string; 
+  children: React.ReactNode 
+}> = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+      <div className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 relative animate-[slideUp_0.3s_ease-out] sm:animate-[fadeIn_0.3s_ease-out]">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black bg-gray-50 rounded-full"
+        >
+          <CloseIcon className="w-5 h-5" />
+        </button>
+        <h3 className="text-xl font-bold mb-4 pr-8">{title}</h3>
+        <div className="text-gray-600 leading-relaxed text-sm">
+          {children}
+        </div>
+        <div className="mt-6">
+          <Button onClick={onClose} variant="secondary">Понятно</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Definitions Data ---
+const definitions: Record<string, Definition> = {
+  mood: {
+    title: "Настроение Дня",
+    text: "Это доминирующий эмоциональный фон, который звезды предсказывают вам на этот период. Понимание своего настроения помогает лучше планировать дела: если фон энергичный — действуйте, если спокойный — уделите время размышлениям."
+  },
+  color: {
+    title: "Цвет Удачи",
+    text: "Этот оттенок резонирует с вашей энергетикой в текущий период. Использование этого цвета в одежде, аксессуарах или просто визуализация его в течение дня может гармонизировать ваше состояние и привлечь удачу."
+  },
+  number: {
+    title: "Число Удачи",
+    text: "Нумерологический знак дня. Это число может встречаться вам в номерах телефонов, времени на часах или ценниках. Оно служит маяком, указывающим на благоприятные моменты или важные подсказки от Вселенной."
+  }
+};
+
 // --- Main App ---
 
 export default function App() {
@@ -78,6 +136,9 @@ export default function App() {
   const [horoscope, setHoroscope] = useState<HoroscopeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  
+  // Modal state
+  const [activeDefinition, setActiveDefinition] = useState<Definition | null>(null);
 
   // Load history on mount
   useEffect(() => {
@@ -134,11 +195,12 @@ export default function App() {
 
   const handleHistoryItemClick = (item: HistoryItem) => {
     setHoroscope(item);
-    // When viewing history, we might want to know it's a history item, 
-    // but reusing 'result' step is easiest. 
-    // We can just restore the profile to what it was for that item to display correct icon/name.
     setProfile(item.profile); 
     setStep('result');
+  };
+
+  const openDefinition = (key: string) => {
+    setActiveDefinition(definitions[key]);
   };
 
   const renderIntro = () => (
@@ -363,21 +425,40 @@ export default function App() {
            </p>
         </div>
 
+        {/* Visual Chart */}
+        {horoscope.scores && <HoroscopeChart scores={horoscope.scores} />}
+
         {/* Mood Card */}
-        <div className="bg-gradient-to-br from-gray-900 to-black text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+        <div 
+          onClick={() => openDefinition('mood')}
+          className="bg-gradient-to-br from-gray-900 to-black text-white p-6 rounded-2xl shadow-xl relative overflow-hidden cursor-pointer transform transition-transform active:scale-[0.98]"
+        >
            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500 opacity-10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-           <p className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-1">Настроение</p>
+           <div className="flex justify-between items-start">
+             <p className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-1">Настроение</p>
+             <div className="text-xs text-gray-500 bg-white/10 px-2 py-0.5 rounded-full">?</div>
+           </div>
            <p className="text-2xl font-bold">{horoscope.mood}</p>
         </div>
 
         {/* Lucky Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
-             <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Цвет удачи</span>
+          <div 
+            onClick={() => openDefinition('color')}
+            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98]"
+          >
+             <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
+               Цвет удачи <span className="text-[10px] text-gray-300">?</span>
+             </span>
              <span className="text-lg font-bold text-red-500 mt-1">{horoscope.luckyColor}</span>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
-             <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Число удачи</span>
+          <div 
+            onClick={() => openDefinition('number')}
+            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98]"
+          >
+             <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
+               Число удачи <span className="text-[10px] text-gray-300">?</span>
+             </span>
              <span className="text-3xl font-black text-yellow-500 mt-1">{horoscope.luckyNumber}</span>
           </div>
         </div>
@@ -448,6 +529,15 @@ export default function App() {
         {step === 'result' && renderResult()}
         {step === 'history' && renderHistory()}
       </main>
+
+      {/* Definitions Modal */}
+      <Modal 
+        isOpen={!!activeDefinition} 
+        onClose={() => setActiveDefinition(null)} 
+        title={activeDefinition?.title || ''}
+      >
+        {activeDefinition?.text}
+      </Modal>
     </div>
   );
 }
