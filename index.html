@@ -9,20 +9,27 @@
     <script>
       // Initialize Telegram Web App
       if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
+        const webApp = window.Telegram.WebApp;
+        
+        // Signal that the app is ready
+        webApp.ready();
+        
+        // Expand to full height immediately
+        webApp.expand();
+
         try {
           // Disable vertical swipes to prevent accidental closing
-          window.Telegram.WebApp.isVerticalSwipesEnabled = false;
-          // Expand to full height
-          window.Telegram.WebApp.expand();
+          webApp.isVerticalSwipesEnabled = false;
           // Set header color
-          window.Telegram.WebApp.setHeaderColor('#ffffff');
+          webApp.setHeaderColor('#ffffff');
+          // Set background color
+          webApp.setBackgroundColor('#ffffff');
         } catch (e) {
           console.warn('Telegram Web App features not fully available', e);
         }
       }
     </script>
-    <!-- We keep Tailwind CDN for simplicity in this setup -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
@@ -31,6 +38,8 @@
         background-color: #ffffff;
         color: #1a1a1a;
         -webkit-tap-highlight-color: transparent;
+        /* Prevent bounce/overscroll effects */
+        overscroll-behavior: none;
       }
       /* Custom scrollbar hide */
       .no-scrollbar::-webkit-scrollbar {
