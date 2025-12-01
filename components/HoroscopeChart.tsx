@@ -7,7 +7,7 @@ interface Props {
 
 export const HoroscopeChart: React.FC<Props> = ({ scores }) => {
   // Chart configuration
-  const size = 360; // Increased canvas size to prevent clipping
+  const size = 420; // Increased canvas size to prevent clipping (was 360)
   const center = size / 2;
   const radius = 80; // Keep chart radius moderate
   const maxScore = 100;
@@ -107,25 +107,28 @@ export const HoroscopeChart: React.FC<Props> = ({ scores }) => {
           {categories.map((cat, i) => {
             // Push labels out further
             const angle = (Math.PI * 2 * i) / totalPoints - Math.PI / 2;
-            const labelRadius = radius + 45; // Significantly increased padding
+            const labelRadius = radius + 55; // Increased padding for labels
             const x = center + labelRadius * Math.cos(angle);
-            const y = center + labelRadius * Math.sin(angle);
+            const y = center + labelRadius * Math.sin(angle); 
             
             // Adjust anchor based on position
-            let anchor = 'middle';
-            let baseline = 'middle';
+            // Explicit types to fix TS errors
+            let anchor: "start" | "middle" | "end" = 'middle';
+            let baseline: "auto" | "middle" | "hanging" = 'middle';
             
             // Fine-tuning position based on index (Top, Right, Bottom, Left)
-            if (i === 0) { // Top
+            if (i === 0) { // Top (General)
                 anchor = 'middle';
                 baseline = 'auto'; // sit on top of point
-            } else if (i === 1) { // Right
+            } else if (i === 1) { // Right (Career)
                 anchor = 'start';
-            } else if (i === 2) { // Bottom
+                baseline = 'middle';
+            } else if (i === 2) { // Bottom (Love)
                 anchor = 'middle';
                 baseline = 'hanging';
-            } else if (i === 3) { // Left
+            } else if (i === 3) { // Left (Health)
                 anchor = 'end';
+                baseline = 'middle';
             }
 
             return (
@@ -135,7 +138,7 @@ export const HoroscopeChart: React.FC<Props> = ({ scores }) => {
                 y={y} 
                 textAnchor={anchor} 
                 dominantBaseline={baseline}
-                fontSize="10" 
+                fontSize="11" 
                 fontWeight="700"
                 fill="#374151"
                 className="uppercase"
